@@ -1,0 +1,30 @@
+{
+  "description": "If a forum uses link like this -> *.*/....&page={pagenum} then This add on can go to next page of a thread",
+  "manifest_version": 2,
+  "name": "NextPager",
+  "version": "0.2",
+  "icons": {
+    "64": "icons/next-64.png"
+  },
+  
+  "permissions": [
+    "tabs"
+  ],
+
+  "browser_action": {
+    "default_icon": "icons/next-64.png",
+    "default_title": "Next Page"
+  },
+  
+  "background": {
+    "scripts": ["next.js"]
+  },
+
+  "commands": {
+    "_execute_browser_action": {
+      "suggested_key": {
+        "default": "Ctrl+Space"
+      }
+    }
+  }
+}
