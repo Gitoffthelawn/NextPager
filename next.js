@@ -29,12 +29,46 @@ var google_search = function(url) {
     var pageNum = parseInt(currPage[2]);
     return currPage[1] + (pageNum + 10).toString() + currPage[3];
 }
+var resetera_pageless = function(url) {
+    return url + "page-2";
+}
+var resetera_withpage = function(url) {
+    var currPage = /^(.*?\/page-)(\d+)$/.exec(url);
+    var baseUrl = currPage[1];
+    var pageNum = parseInt(currPage[2], 10);
+    return baseUrl + (pageNum + 1).toString();
+}
+var somethingawful_withpage = function(url) {
+    var currPage = /^(.*?threadid=\d+&userid=\d+&perpage=\d+&pagenumber=)(\d+)$/.exec(url);
+    var baseUrl = currPage[1];
+    var pageNum = parseInt(currPage[2], 10);
+    return baseUrl + (pageNum + 1).toString();
+}
+var d2jsp_pageless = function(url) {
+    return url + "&o=10";
+}
+var d2jsp_withpage = function(url) {
+    var currPage = /^(.*\?t=\d+&f=\d+&o=)(\d+)$/.exec(url);
+    var baseUrl = currPage[1];
+    var pageNum = parseInt(currPage[2], 10);
+    return baseUrl + (pageNum + 10).toString();
+}
+var fourchan_pageless = function(url) {
+    return url + "2";
+}
+var fourchan_withpage = function(url) {
+    var currPage = /^(.*?boards\.4chan\.org\/\w+\/)(\d+)$/.exec(url);
+    var baseUrl = currPage[1];
+    var pageNum = parseInt(currPage[2], 10);
+    return baseUrl + (pageNum + 1).toString();
+}
 // -------------------------------------------------------
 
 
 // array holding url pattern and function to handle url
 var handler = [
     {
+        // pattern for neogaf..
         "pattern": /^.*?\?t=\d+$/,
         "function": neogaf_pageless
     },
@@ -53,6 +87,42 @@ var handler = [
     {
         "pattern": /^.*?google\.com\/search\?q=.*?&start=\d+&.*$/,
         "function": google_search
+    },
+    {
+        // pattern for resetera, anandtech, ign...
+        "pattern": /^.*?\/threads\/.*?\.\d+\/$/,
+        "function": resetera_pageless
+    },
+    {
+        // pattern for resetera, anandtech, ign...
+        "pattern": /^.*?\/page-\d+$/,
+        "function": resetera_withpage
+    },
+    {
+        // TODO: add handler for first page
+        // pattern for somethingawful.com..
+        "pattern": /^.*?threadid=\d+&userid=\d+&perpage=\d+&pagenumber=\d+$/,
+        "function": somethingawful_withpage
+    },
+    {
+        // pattern for d2jsp forum first page
+        "pattern": /^.*\?t=\d+&f=\d+$/,
+        "function": d2jsp_pageless
+    },
+    {
+        // pattern for d2jsp forum subsequent pages
+        "pattern": /^.*\?t=\d+&f=\d+&o=\d+$/,
+        "function": d2jsp_withpage
+    },
+    {
+        // pattern for 4chan
+        "pattern": /^.*?boards\.4chan\.org\/\w+\/$/,
+        "function": fourchan_pageless
+    },
+    {
+        // pattern for 4chan
+        "pattern": /^.*?boards\.4chan\.org\/\w+\/\d+$/,
+        "function": fourchan_withpage
     }
 ];
 // ------------------------------------------------------
