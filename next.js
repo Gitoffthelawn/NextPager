@@ -6,14 +6,14 @@ var neogaf_pageless = function(url) {
 }
 var neogaf_withpage = function(url) {
     // return url of next page
-    var currPage = /(^.*?\?t=\d+&page=)(\d+)$/.exec(url);
+    var currPage = /^(.*?\?t=\d+&page=)(\d+)$/.exec(url);
     var pageNum = parseInt(currPage[2], 10);
     var baseUrl = currPage[1];
     return baseUrl + (pageNum + 1).toString();
 }
 var gamespot_pageless = function(url) {
     // for urls that use gamespot forum style linking
-    var baseUrl = /(^.*?)\/#\d+$/.exec(url);
+    var baseUrl = /^(.*?)\/#\d+$/.exec(url);
     return baseUrl[1] + "/?page=2";
 }
 var gamespot_withpage = function(url) {
@@ -24,26 +24,35 @@ var gamespot_withpage = function(url) {
     var pageNum = parseInt(currPage[2], 10);
     return baseUrl + (pageNum + 1).toString();
 }
+var google_search = function(url) {
+    var currPage = /^(.*?google\.com\/search\?q=.*?&start=)(\d+)(&.*)$/.exec(url);
+    var pageNum = parseInt(currPage[2]);
+    return currPage[1] + (pageNum + 10).toString() + currPage[3];
+}
 // -------------------------------------------------------
 
 
 // array holding url pattern and function to handle url
 var handler = [
     {
-        "pattern": /^.*?\?t=(\d+)$/,
+        "pattern": /^.*?\?t=\d+$/,
         "function": neogaf_pageless
     },
     {
-        "pattern": /^.*?\?t=(\d+)&page=(\d+)$/,
+        "pattern": /^.*?\?t=\d+&page=\d+$/,
         "function": neogaf_withpage
     },
     {
-        "pattern": /^.*?\/#(\d+)$/,
+        "pattern": /^.*?\/#\d+$/,
         "function": gamespot_pageless
     },
     {
         "pattern": /^.*?\/?page=\d+$/,
         "function": gamespot_withpage
+    },
+    {
+        "pattern": /^.*?google\.com\/search\?q=.*?&start=\d+&.*$/,
+        "function": google_search
     }
 ];
 // ------------------------------------------------------
