@@ -62,6 +62,15 @@ var fourchan_withpage = function(url) {
     var pageNum = parseInt(currPage[2], 10);
     return baseUrl + (pageNum + 1).toString();
 }
+var phpbb_pageless = function(url) {
+    return url + "&sid=abcde12345&start=15";
+}
+var phpbb_withpage = function(url) {
+    var currPage = /^([^\?]+\?f=\d+&t=\d+(?:&sid=\w+)?&start=)(\d+)$/.exec(url);
+    var baseUrl = currPage[1];
+    var pageNum = parseInt(currPage[2], 10);
+    return baseUrl + (pageNum + 15).toString();
+}
 // -------------------------------------------------------
 
 
@@ -123,6 +132,16 @@ var handler = [
         // pattern for 4chan
         "pattern": /^.*?boards\.4chan\.org\/\w+\/\d+$/,
         "function": fourchan_withpage
+    },
+    {
+        // pattern for phpBB
+        "pattern": /^[^\?]+\?f=\d+&t=\d+$/,
+        "function": phpbb_pageless
+    },
+    {
+        // pattern for phpBB
+        "pattern": /^[^\?]+\?f=\d+&t=\d+(?:&sid=\w+)?&start=\d+$/,
+        "function": phpbb_withpage
     }
 ];
 // ------------------------------------------------------
@@ -135,10 +154,12 @@ function updTab(tbs) {
     var len = handler.length;
     for (var i=0; i<len; i++) {
         if (handler[i]["pattern"].test(tabUrl) == true) {
+            console.log(handler[i]["pattern"]);
             updUrl = handler[i]["function"](tabUrl);
             break;
         }
     }
+    console.log(updUrl);
     browser.tabs.update(tbs.id, {url: updUrl});
 }
 function getCurTab(tbs) {

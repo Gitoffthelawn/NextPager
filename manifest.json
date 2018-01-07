@@ -1,5 +1,5 @@
 {
-  "description": "Move to next of forums simply clicking a button (or ctrl+space)",
+  "description": "Move to next page of forums simply clicking a button (or ctrl+space)",
   "manifest_version": 2,
   "name": "NextPager",
   "version": "0.2.1",
