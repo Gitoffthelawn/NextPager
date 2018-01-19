@@ -1,4 +1,10 @@
 // functions to handle different urls
+// most of the forums use 2 different url patterns.
+// 1 is for the first page and 1 for later pages
+// So, there's 2 handler functions for a forum
+// <forum>_pageless  --->   handle "First page"
+// <forum>-withpage  --->   handle "Later pages"
+
 var neogaf_pageless = function(url) {
     // this will return url of next page for sites that use neogaf
     // style page linking
@@ -25,6 +31,7 @@ var gamespot_withpage = function(url) {
     return baseUrl + (pageNum + 1).toString();
 }
 var google_search = function(url) {
+    // handle  google search page navigation
     var currPage = /^(.*?google\.com\/search\?q=.*?&start=)(\d+)(&.*)$/.exec(url);
     var pageNum = parseInt(currPage[2]);
     return currPage[1] + (pageNum + 10).toString() + currPage[3];
@@ -154,12 +161,12 @@ function updTab(tbs) {
     var len = handler.length;
     for (var i=0; i<len; i++) {
         if (handler[i]["pattern"].test(tabUrl) == true) {
-            console.log(handler[i]["pattern"]);
+            logError(handler[i]["pattern"]);
             updUrl = handler[i]["function"](tabUrl);
             break;
         }
     }
-    console.log(updUrl);
+    logError(updUrl);
     browser.tabs.update(tbs.id, {url: updUrl});
 }
 function getCurTab(tbs) {
@@ -173,6 +180,9 @@ function buttonClicked()
     tabs.then(getCurTab, logError);
 }
 function logError(err) {
+    // function to handle error during execution
+    // firefox doesn't allow (or atleast discourages) console logging
+    // in addons. So this is not really used in production
     //console.log(err);
 }
 
