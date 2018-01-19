@@ -6,7 +6,7 @@ var neogaf_pageless = function(url) {
 }
 var neogaf_withpage = function(url) {
     // return url of next page
-    var currPage = /^(.*?\?t=\d+&page=)(\d+)$/.exec(url);
+    var currPage = /(^.*?\?(?:s=\w+?&)?t=\d+&page=)(\d+)$/.exec(url);
     var pageNum = parseInt(currPage[2], 10);
     var baseUrl = currPage[1];
     return baseUrl + (pageNum + 1).toString();
@@ -77,12 +77,12 @@ var phpbb_withpage = function(url) {
 // array holding url pattern and function to handle url
 var handler = [
     {
-        // pattern for neogaf..
-        "pattern": /^.*?\?t=\d+$/,
+        // pattern for neogaf, xossip
+        "pattern": /^.*?\?(?:s=\w+?&)?t=\d+$/,
         "function": neogaf_pageless
     },
     {
-        "pattern": /^.*?\?t=\d+&page=\d+$/,
+        "pattern": /^.*?\?(?:s=\w+?&)?t=\d+&page=\d+$/,
         "function": neogaf_withpage
     },
     {
