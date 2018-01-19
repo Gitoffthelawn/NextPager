@@ -101,6 +101,7 @@ var handler = [
         "function": gamespot_withpage
     },
     {
+        // pattern for google search
         "pattern": /^.*?google\.com\/search\?q=.*?&start=\d+&.*$/,
         "function": google_search
     },
