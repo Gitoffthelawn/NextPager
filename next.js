@@ -78,6 +78,22 @@ var phpbb_withpage = function(url) {
     var pageNum = parseInt(currPage[2], 10);
     return baseUrl + (pageNum + 15).toString();
 }
+var reddit = function(url) {
+    // this is a special function
+    // reddit uses token for page linking
+    // So I have to dig up next page link from current page source
+    // but the problem is the api for executing script returns promise
+    // So I have to update the page in this function
+    // So the return value to the updUrl func will be undefined
+    function updateUrl(link) {
+        logError("URL: " + link);
+        browser.tabs.update({url: link[0]});
+    }
+    var exec = browser.tabs.executeScript({
+        file: "reddit.js"
+    });
+    exec.then(updateUrl, logError);
+}
 // -------------------------------------------------------
 
 
@@ -150,6 +166,11 @@ var handler = [
         // pattern for phpBB
         "pattern": /^[^\?]+\?f=\d+&t=\d+(?:&sid=\w+)?&start=\d+$/,
         "function": phpbb_withpage
+    },
+    {
+        // pattern to handle reddit
+        "pattern": /^.*?reddit\.com\/?(?:r\/[^\/]+\/?)?\??(?:count=\d+&after=[\w_]+)?$/,
+        "function": reddit
     }
 ];
 // ------------------------------------------------------
@@ -167,8 +188,13 @@ function updTab(tbs) {
             break;
         }
     }
-    logError(updUrl);
-    browser.tabs.update(tbs.id, {url: updUrl});
+    logError("updated url: " + updUrl);
+    if(updUrl == null) {
+        logError("Error in URL: " + updUrl);
+    }
+    else {
+        browser.tabs.update(tbs.id, {url: updUrl});
+    }
 }
 function getCurTab(tbs) {
     var curTab = browser.tabs.get(tbs[0].id);
@@ -184,7 +210,7 @@ function logError(err) {
     // function to handle error during execution
     // firefox doesn't allow (or atleast discourages) console logging
     // in addons. So this is not really used in production
-    //console.log(err);
+    // console.log(err);
 }
 
 // attaching function to listen to click in toolbar icon
