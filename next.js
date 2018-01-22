@@ -78,6 +78,8 @@ var phpbb_withpage = function(url) {
     var pageNum = parseInt(currPage[2], 10);
     return baseUrl + (pageNum + 15).toString();
 }
+
+// special functions: link extractor defined in [reddit.js] 
 var reddit = function(url) {
     // this is a special function
     // reddit uses token for page linking
@@ -85,14 +87,23 @@ var reddit = function(url) {
     // but the problem is the api for executing script returns promise
     // So I have to update the page in this function
     // So the return value to the updUrl func will be undefined
-    function updateUrl(link) {
-        logError("URL: " + link);
-        browser.tabs.update({url: link[0]});
+    function updateUrl(url) {
+        logError(arguments.callee.caller + url);
+        browser.tabs.update({"url": url["nextLink"]});
     }
+
+    function sender(link) {
+        logError(link);
+        browser.tabs.sendMessage(1, {
+            "url": "link",
+            "site": "reddit"
+        }).then(updateUrl, logError);
+    }
+
     var exec = browser.tabs.executeScript({
-        file: "reddit.js"
+        file: "findLink.js"
     });
-    exec.then(updateUrl, logError);
+    exec.then(sender, logError);
 }
 // -------------------------------------------------------
 
@@ -210,7 +221,11 @@ function logError(err) {
     // function to handle error during execution
     // firefox doesn't allow (or atleast discourages) console logging
     // in addons. So this is not really used in production
-    // console.log(err);
+    var stack = new Error().stack,
+        caller = stack.split('\n')[2].trim();
+
+    console.log(caller + ":" + err);
+
 }
 
 // attaching function to listen to click in toolbar icon
