@@ -5,82 +5,76 @@
 // <forum>_pageless  --->   handle "First page"
 // <forum>-withpage  --->   handle "Later pages"
 
-var neogaf_pageless = function(url) {
+var neogaf_pageless = function(tab) {
     // this will return url of next page for sites that use neogaf
     // style page linking
-    return url + "&page=2";
+    return tab.url + "&page=2";
 }
-var neogaf_withpage = function(url) {
+var neogaf_withpage = function(tab) {
     // return url of next page
-    var currPage = /(^.*?\?(?:s=\w+?&)?t=\d+&page=)(\d+)$/.exec(url);
+    var currPage = /(^.*?\?(?:s=\w+?&)?t=\d+&page=)(\d+)$/.exec(tab.url);
     var pageNum = parseInt(currPage[2], 10);
     var baseUrl = currPage[1];
     return baseUrl + (pageNum + 1).toString();
 }
-var gamespot_pageless = function(url) {
+var gamespot_pageless = function(tab) {
     // for urls that use gamespot forum style linking
-    var baseUrl = /^(.*?)\/#\d+$/.exec(url);
+    var baseUrl = /^(.*?)\/#\d+$/.exec(tab.url);
     return baseUrl[1] + "/?page=2";
 }
-var gamespot_withpage = function(url) {
+var gamespot_withpage = function(tab) {
     // for urls that use gamesport style linking
     // and has a page tag
-    var currPage = /^(.*?\/?page=)(\d+)$/.exec(url);
+    var currPage = /^(.*?\/?page=)(\d+)$/.exec(tab.url);
     var baseUrl = currPage[1];
     var pageNum = parseInt(currPage[2], 10);
     return baseUrl + (pageNum + 1).toString();
 }
-var google_search = function(url) {
-    // handle  google search page navigation
-    var currPage = /^(.*?google\.com\/search\?q=.*?&start=)(\d+)(&.*)$/.exec(url);
-    var pageNum = parseInt(currPage[2]);
-    return currPage[1] + (pageNum + 10).toString() + currPage[3];
+var resetera_pageless = function(tab) {
+    return tab.url + "page-2";
 }
-var resetera_pageless = function(url) {
-    return url + "page-2";
-}
-var resetera_withpage = function(url) {
-    var currPage = /^(.*?\/page-)(\d+)$/.exec(url);
+var resetera_withpage = function(tab) {
+    var currPage = /^(.*?\/page-)(\d+)$/.exec(tab.url);
     var baseUrl = currPage[1];
     var pageNum = parseInt(currPage[2], 10);
     return baseUrl + (pageNum + 1).toString();
 }
-var somethingawful_withpage = function(url) {
-    var currPage = /^(.*?threadid=\d+&userid=\d+&perpage=\d+&pagenumber=)(\d+)$/.exec(url);
+var somethingawful_withpage = function(tab) {
+    var currPage = /^(.*?threadid=\d+&userid=\d+&perpage=\d+&pagenumber=)(\d+)$/.exec(tab.url);
     var baseUrl = currPage[1];
     var pageNum = parseInt(currPage[2], 10);
     return baseUrl + (pageNum + 1).toString();
 }
-var d2jsp_pageless = function(url) {
-    return url + "&o=10";
+var d2jsp_pageless = function(tab) {
+    return tab.url + "&o=10";
 }
-var d2jsp_withpage = function(url) {
-    var currPage = /^(.*\?t=\d+&f=\d+&o=)(\d+)$/.exec(url);
+var d2jsp_withpage = function(tab) {
+    var currPage = /^(.*\?t=\d+&f=\d+&o=)(\d+)$/.exec(tab.url);
     var baseUrl = currPage[1];
     var pageNum = parseInt(currPage[2], 10);
     return baseUrl + (pageNum + 10).toString();
 }
-var fourchan_pageless = function(url) {
-    return url + "2";
+var fourchan_pageless = function(tab) {
+    return tab.url + "2";
 }
-var fourchan_withpage = function(url) {
-    var currPage = /^(.*?boards\.4chan\.org\/\w+\/)(\d+)$/.exec(url);
+var fourchan_withpage = function(tab) {
+    var currPage = /^(.*?boards\.4chan\.org\/\w+\/)(\d+)$/.exec(tab.url);
     var baseUrl = currPage[1];
     var pageNum = parseInt(currPage[2], 10);
     return baseUrl + (pageNum + 1).toString();
 }
-var phpbb_pageless = function(url) {
-    return url + "&sid=abcde12345&start=15";
+var phpbb_pageless = function(tab) {
+    return tab.url + "&sid=abcde12345&start=15";
 }
-var phpbb_withpage = function(url) {
-    var currPage = /^([^\?]+\?f=\d+&t=\d+(?:&sid=\w+)?&start=)(\d+)$/.exec(url);
+var phpbb_withpage = function(tab) {
+    var currPage = /^([^\?]+\?f=\d+&t=\d+(?:&sid=\w+)?&start=)(\d+)$/.exec(tab.url);
     var baseUrl = currPage[1];
     var pageNum = parseInt(currPage[2], 10);
     return baseUrl + (pageNum + 15).toString();
 }
 
 // special functions: link extractor defined in [reddit.js] 
-var reddit = function(url) {
+var reddit = function(tab) {
     // this is a special function
     // reddit uses token for page linking
     // So I have to dig up next page link from current page source
@@ -88,14 +82,12 @@ var reddit = function(url) {
     // So I have to update the page in this function
     // So the return value to the updUrl func will be undefined
     function updateUrl(url) {
-        logError(arguments.callee.caller + url);
+        logError(url);
         browser.tabs.update({"url": url["nextLink"]});
     }
-
-    function sender(link) {
-        logError(link);
-        browser.tabs.sendMessage(1, {
-            "url": "link",
+    function sender(tid) {
+        logError(tid);
+        browser.tabs.sendMessage(tid, {
             "site": "reddit"
         }).then(updateUrl, logError);
     }
@@ -103,7 +95,25 @@ var reddit = function(url) {
     var exec = browser.tabs.executeScript({
         file: "findLink.js"
     });
-    exec.then(sender, logError);
+    exec.then(sender(tab.id), logError);
+}
+var google_search = function(tab) {
+    // handle  google search page navigation
+    function updateUrl(url) {
+        logError(url);
+        browser.tabs.update({"url": url["nextLink"]});
+    }
+    function sender(tid) {
+        logError(tid);
+        browser.tabs.sendMessage(tid, {
+            "site": "google"
+        }).then(updateUrl, logError);
+    }
+
+    var exec = browser.tabs.executeScript({
+        file: "findLink.js"
+    });
+    exec.then(sender(tab.id), logError);
 }
 // -------------------------------------------------------
 
@@ -126,11 +136,6 @@ var handler = [
     {
         "pattern": /^.*?\/?page=\d+$/,
         "function": gamespot_withpage
-    },
-    {
-        // pattern for google search
-        "pattern": /^.*?google\.com\/search\?q=.*?&start=\d+&.*$/,
-        "function": google_search
     },
     {
         // pattern for resetera, anandtech, ign...
@@ -182,6 +187,11 @@ var handler = [
         // pattern to handle reddit
         "pattern": /^.*?reddit\.com\/?(?:r\/[^\/]+\/?)?\??(?:count=\d+&after=[\w_]+)?$/,
         "function": reddit
+    },
+    {
+        // pattern for google search
+        "pattern": /^.*?google\.com\/search\?.*$/,
+        "function": google_search
     }
 ];
 // ------------------------------------------------------
@@ -190,12 +200,12 @@ var handler = [
 
 function updTab(tbs) {
     var tabUrl = tbs.url;
-    var updUrl = tabUrl;
+    var updUrl = null;
     var len = handler.length;
     for (var i=0; i<len; i++) {
         if (handler[i]["pattern"].test(tabUrl) == true) {
             logError(handler[i]["pattern"]);
-            updUrl = handler[i]["function"](tabUrl);
+            updUrl = handler[i]["function"](tbs);
             break;
         }
     }

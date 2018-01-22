@@ -12,7 +12,8 @@ var reddit = function(url) {
 	return nextLink;
 }
 var google = function(url) {
-	console.log("will defined you later");
+	var nextLink = document.getElementById("pnnext").href;
+	return nextLink;
 }
 
 
@@ -35,7 +36,6 @@ var handler = {
 */
 var messageHandler = function(message, sender, sendResponse) {
 	console.log("received message");
-	var url = message.url;
 	var siteName = message.site;
 	var nextLink = handler[siteName]();
 	console.log(nextLink);
