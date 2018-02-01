@@ -1,3 +1,5 @@
+var DEBUG = false;
+
 // functions to handle different urls
 // most of the forums use 2 different url patterns.
 // 1 is for the first page and 1 for later pages
@@ -73,7 +75,7 @@ var phpbb_withpage = function(tab) {
     return baseUrl + (pageNum + 15).toString();
 }
 
-// special functions: link extractor defined in [reddit.js] 
+// special functions: link extractor defined in [findLink.js] 
 var reddit = function(tab) {
     // this is a special function
     // reddit uses token for page linking
@@ -82,18 +84,26 @@ var reddit = function(tab) {
     // So I have to update the page in this function
     // So the return value to the updUrl func will be undefined
     function updateUrl(url) {
-        logError(url);
+        logError("new url: " + url["nextLink"]);
         browser.tabs.update({"url": url["nextLink"]});
     }
     function sender(tid) {
-        logError(tid);
-        browser.tabs.sendMessage(tid, {
-            "site": "reddit"
-        }).then(updateUrl, logError);
+        logError("Id of tab: " + tid);
+        
+        // injecting the script for the first time requires
+        // some time. without delay next page does not get 
+        // loaded in the first click. subsequent clicks work fine
+        // find a better way to deal with first click 
+        setTimeout(sendMessage, 100);
+        function sendMessage() {
+            browser.tabs.sendMessage(tid, {
+                "site": "reddit"
+            }).then(updateUrl, logError);
+        }
     }
 
-    var exec = browser.tabs.executeScript({
-        file: "findLink.js"
+    var exec = browser.tabs.executeScript(tab.id, {
+        file: "/findLink.js"
     });
     exec.then(sender(tab.id), logError);
 }
@@ -105,11 +115,13 @@ var google_search = function(tab) {
     }
     function sender(tid) {
         logError(tid);
-        browser.tabs.sendMessage(tid, {
-            "site": "google"
-        }).then(updateUrl, logError);
+        setTimeout(sendMessage, 100);
+        function sendMessage() {
+            browser.tabs.sendMessage(tid, {
+                "site": "google"
+            }).then(updateUrl, logError);
+        }
     }
-
     var exec = browser.tabs.executeScript({
         file: "findLink.js"
     });
@@ -139,7 +151,7 @@ var handler = [
     },
     {
         // pattern for resetera, anandtech, ign...
-        "pattern": /^.*?\/threads\/.*?\.\d+\/$/,
+        "pattern": /^.*?\/(threads|forums)\/.*?\.\d+\/$/,
         "function": resetera_pageless
     },
     {
@@ -190,7 +202,8 @@ var handler = [
     },
     {
         // pattern for google search
-        "pattern": /^.*?google\.com\/search\?.*$/,
+        // supports google.(com|de|nl|....)
+        "pattern": /^.*?google\.\w+?\/search\?.*$/,
         "function": google_search
     }
 ];
@@ -198,7 +211,7 @@ var handler = [
 
 
 
-function updTab(tbs) {
+function updateTab(tbs) {
     var tabUrl = tbs.url;
     var updUrl = null;
     var len = handler.length;
@@ -217,26 +230,19 @@ function updTab(tbs) {
         browser.tabs.update(tbs.id, {url: updUrl});
     }
 }
-function getCurTab(tbs) {
-    var curTab = browser.tabs.get(tbs[0].id);
-    curTab.then(updTab, logError);
-}
-function buttonClicked()
-{
-    // query tabs to get current tab
-    var tabs = browser.tabs.query({currentWindow: true, active:true});
-    tabs.then(getCurTab, logError);
-}
+
 function logError(err) {
     // function to handle error during execution
     // firefox doesn't allow (or atleast discourages) console logging
     // in addons. So this is not really used in production
-    var stack = new Error().stack,
-        caller = stack.split('\n')[2].trim();
+    if (DEBUG === true) {
+        var stack = new Error().stack,
+            caller = stack.split('\n')[1].split('@')[0];
 
-    console.log(caller + ":" + err);
-
+        console.log(`[${caller}]`);
+        console.log(`LOG=> ${err}`);
+    }
 }
 
 // attaching function to listen to click in toolbar icon
-browser.browserAction.onClicked.addListener(buttonClicked);
+browser.browserAction.onClicked.addListener(updateTab);

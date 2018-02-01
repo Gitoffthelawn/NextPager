@@ -1,9 +1,4 @@
 // a content script for finding next page link from reddit
-/*
-	TODO:
-	1. Implement a message passing system so that I can
-		use this script for many more websites
-*/
 
 // function definitions
 var reddit = function(url) {
