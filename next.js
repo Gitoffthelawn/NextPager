@@ -127,6 +127,25 @@ var google_search = function(tab) {
     });
     exec.then(sender(tab.id), logError);
 }
+var bing_search = function(tab) {
+    function updateUrl(url) {
+        logError(url);
+        browser.tabs.update({"url": url["nextLink"]});
+    }
+    function sender(tid) {
+        logError(tid);
+        setTimeout(sendMessage, 100);
+        function sendMessage() {
+            browser.tabs.sendMessage(tid, {
+                "site": "bing"
+            }).then(updateUrl, logError);
+        }
+    }
+    var exec = browser.tabs.executeScript({
+        file: "findLink.js"
+    });
+    exec.then(sender(tab.id), logError);
+}
 // -------------------------------------------------------
 
 
@@ -205,6 +224,11 @@ var handler = [
         // supports google.(com|de|nl|....)
         "pattern": /^.*?google\.\w+?\/search\?.*$/,
         "function": google_search
+    },
+    {
+        // pattern for bing
+        "pattern": /^.*?bing\.com\/search\?.*$/,
+        "function": bing_search
     }
 ];
 // ------------------------------------------------------

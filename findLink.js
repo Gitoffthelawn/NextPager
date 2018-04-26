@@ -10,12 +10,17 @@ var google = function(url) {
 	var nextLink = document.getElementById("pnnext").href;
 	return nextLink;
 }
+var bing = function(url) {
+	var nextLink = document.getElementsByClassName("sb_pagN")[0].href;
+	return nextLink;
+}
 
 
 // object containing site name and their handler function
 var handler = {
 	"reddit": reddit,
-	"google": google
+	"google": google,
+	"bing": bing
 };
 
 
@@ -30,10 +35,10 @@ var handler = {
 
 */
 var messageHandler = function(message, sender, sendResponse) {
-	console.log("received message");
+	//console.log("received message");
 	var siteName = message.site;
 	var nextLink = handler[siteName]();
-	console.log(nextLink);
+	//console.log(nextLink);
 	sendResponse({
 		"nextLink": nextLink
 	});
